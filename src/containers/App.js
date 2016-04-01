@@ -16,6 +16,8 @@ class App extends Component {
     componentDidMount() {
         if ("songChanged" in this.props) {
             this.mopidy.registerEvent("track_playback_started", this.props.songChanged);
+        }
+        if ("stateChanged" in this.props) {
             this.mopidy.registerEvent("playback_state_changed", this.props.stateChanged);
         }
     }
