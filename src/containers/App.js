@@ -36,7 +36,7 @@ class App extends Component {
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
     return {
-        track: {title: state.track.title},
+        track: state.track,
         state: state.player.state
     };
 }
