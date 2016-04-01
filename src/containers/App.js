@@ -16,10 +16,14 @@ class App extends Component {
     componentDidMount() {
         if ("songChanged" in this.props) {
             this.mopidy.registerEvent("track_playback_started", this.props.songChanged);
+            this.mopidy.registerMethod("core.playback.get_current_track", this.props.songChanged);
         }
         if ("stateChanged" in this.props) {
             this.mopidy.registerEvent("playback_state_changed", this.props.stateChanged);
+            this.mopidy.registerMethod("core.playback.get_state", this.props.stateChanged);
+
         }
+        this.mopidy.initialize();
     }
     render() {
         const { track, state } = this.props;
