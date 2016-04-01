@@ -1,17 +1,11 @@
 let defaultState = {
-    artist: "",
-    title: "",
-    album: "",
-    duration: "",
-    state: "stop"
+    state: "stopped"
 };
 
 export default function(state = defaultState, action) {
     switch (action.type) {
-        case "SONG_CHANGED":
-            return {...state }
         case "STATE_CHANGED":
-            return { ...state }
+            return {...state, state: action.state}
         default:
             return state;
     }
