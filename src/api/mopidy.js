@@ -6,7 +6,9 @@ export class MopidyPlayer {
         this.events = {};
         this.methods = {};
         this.requests = {};
+        this.lastId = 0;
         this.ws.on('message', this.receiveMessage.bind(this));
+        this.ws.on('open', this.initialize.bind(this));
     }
     receiveMessage(rawData) {
         let data = JSON.parse(rawData);
@@ -25,7 +27,6 @@ export class MopidyPlayer {
             this.events[data.event](params);
         }
         else if ("result" in data) { // got a response for a request
-        console.log(data);
             let params = {};
             if (this.requests[data.id] == 'core.playback.get_state') {
                 params['state'] = data.result
@@ -37,7 +38,10 @@ export class MopidyPlayer {
                 params['duration'] = data.result.length;
 
             }
-            if (this.requests[data.id] in this.methods) this.methods[this.requests[data.id]](params);
+            if (this.requests[data.id] in this.methods) {
+              this.methods[this.requests[data.id]](params);
+              delete this.methods[this.requests[data.id]];
+            }
         }
     }
     registerEvent(type, f, params = {}) {
@@ -47,12 +51,22 @@ export class MopidyPlayer {
         this.methods[type] = f;
     }
     initialize() {
-        this.ws.on('open', function open() {
-            this.ws.send('{"jsonrpc": "2.0", "id": 1, "method": "core.playback.get_state"}');
-            this.requests["1"] = "core.playback.get_state";
-            this.ws.send('{"jsonrpc": "2.0", "id": 2, "method": "core.playback.get_current_track"}');
-            this.requests["2"] = "core.playback.get_current_track";
-        }.bind(this));
-    }
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_state"}');
+        this.requests[this.lastId] = "core.playback.get_state";
 
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_current_track"}');
+        this.requests[this.lastId] = "core.playback.get_current_track";
+    }
+    resume() {
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.resume"}');
+    }
+    pause() {
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.pause"}');
+    }
+    previous() {
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.previous"}');
+    }
+    next() {
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.next"}');
+    }
 }

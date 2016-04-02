@@ -23,12 +23,31 @@ class App extends Component {
             this.mopidy.registerMethod("core.playback.get_state", this.props.stateChanged);
 
         }
-        this.mopidy.initialize();
+    }
+    mopidyAction(action) {
+        console.log(action);
+        switch(action) {
+            case "initialize":
+                this.mopidy.initialize();
+                break;
+            case "resume":
+                this.mopidy.resume();
+                break;
+            case "pause":
+                this.mopidy.pause();
+                break;
+            case "previous":
+                this.mopidy.previous();
+                break;
+            case "next":
+                this.mopidy.next();
+                break;
+        }
     }
     render() {
         const { track, state } = this.props;
         return (
-            <Player track={track} state={state} />
+            <Player track={track} state={state} mopidyAction={this.mopidyAction.bind(this)} />
         );
     }
 }
