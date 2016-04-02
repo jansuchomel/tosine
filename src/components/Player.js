@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 
+import Button from 'react-bootstrap/lib/Button';
+import Glyphicon from 'react-bootstrap/lib/Glyphicon';
+
 export default class Player extends Component {
     render() {
         const { track, state, mopidyAction, position } = this.props;
@@ -13,13 +16,13 @@ export default class Player extends Component {
         }
 
         return (
-        <div>
+        <span>
             <b>{ track.title } </b>
             by { artistComps }
             from <b> { track.album.name }</b>
             <Control state={ state } mopidyAction={ mopidyAction } />
             <SeekBar duration={ track.duration } position={position} state={state} />
-        </div>);
+        </span>);
     }
 }
 
@@ -39,9 +42,9 @@ class Control extends Component {
     render() {
         const { state, mopidyAction } = this.props;
 
-        let playPause = <a onClick={ this.resume.bind(this) }> play </a>;
+        let playPause = <Button onClick={ this.resume.bind(this) }> <Glyphicon glyph="play" /> </Button>;
         if ( state == "playing" ) {
-            playPause = <a onClick={ this.pause.bind(this) }> pause </a>;
+            playPause = <Button onClick={ this.pause.bind(this) }> <Glyphicon glyph="pause" /> </Button>;
         }
         else if ( state == "stopped" ) {
             playPause = <b>stopped</b>
@@ -49,9 +52,10 @@ class Control extends Component {
 
         return (
             <div>
-                <a onClick={ this.previous.bind(this) }> prev </a>
+
+                <Button onClick={ this.previous.bind(this) }> <Glyphicon glyph="step-backward" /> </Button>
                 { playPause }
-                <a onClick={ this.next.bind(this) }> next </a>
+                <Button onClick={ this.next.bind(this) }> <Glyphicon glyph="step-forward" /> </Button>
             </div>
         )
     }

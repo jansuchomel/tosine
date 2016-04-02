@@ -11,6 +11,15 @@ import { songChanged } from '../actions/TrackActions';
 import { stateChanged, positionChanged } from '../actions/PlayerActions';
 import { trackListChanged, indexChanged } from '../actions/TracklistActions'
 
+import Panel from 'react-bootstrap/lib/Panel';
+import Row from 'react-bootstrap/lib/Row';
+import Col from 'react-bootstrap/lib/Col';
+import Navbar from 'react-bootstrap/lib/Navbar';
+import Input from 'react-bootstrap/lib/Input';
+import Button from 'react-bootstrap/lib/Button';
+
+
+
 class App extends Component {
     constructor() {
         super();
@@ -59,8 +68,41 @@ class App extends Component {
         const { track, state, position, tracks, index } = this.props;
         return (
             <div>
-                <Tracklist tracks={ tracks } index={ index } mopidyAction={ this.mopidyAction.bind(this)} />
-                <Player track={track} state={state} mopidyAction={this.mopidyAction.bind(this)} position={position} />
+                <Navbar fixedBottom={true}>
+                    <Player track={track} state={state} mopidyAction={this.mopidyAction.bind(this)} position={position} />
+                </Navbar>
+                <Navbar staticTop={true}>
+                    <Navbar.Header>
+                      <Navbar.Brand>
+                        <a href="#">tosine</a>
+                      </Navbar.Brand>
+                      <Navbar.Toggle />
+                    </Navbar.Header>
+                    <Navbar.Collapse>
+                      <Navbar.Form pullLeft>
+                        <Input type="text" placeholder="Search"/>
+                        {' '}
+                        <Button type="submit">Submit</Button>
+                      </Navbar.Form>
+                    </Navbar.Collapse>
+                </Navbar>
+                <Row className={"content"}>
+                    <Col md={4}>
+                        <Panel>
+                          <b>TODO: library</b>
+                        </Panel>
+                    </Col>
+                    <Col md={5}>
+                        <Panel>
+                            <Tracklist tracks={ tracks } index={ index } mopidyAction={ this.mopidyAction.bind(this)} />
+                        </Panel>
+                    </Col>
+                    <Col md={3}>
+                    <Panel>
+                      <b>TODO: details</b>
+                    </Panel>
+                    </Col>
+                </Row>
             </div>
         );
     }

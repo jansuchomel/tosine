@@ -66,6 +66,7 @@ export class MopidyPlayer {
                 params['tracks'] = data.result;
             }
             else if ("result" in data && this.requests[data.id] == "core.tracklist.index") {
+                console.log(data.result);
                 params['index'] = data.result;
             }
             if (this.requests[data.id] in this.methods) {
@@ -114,7 +115,6 @@ export class MopidyPlayer {
         this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.next"}');
     }
     select(index=0) {
-        console.log("selecting index " + index)
         this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.play", "params": {"tlid":' + index +' }}');
     }
 }
