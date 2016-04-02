@@ -30,13 +30,13 @@ class App extends Component {
             this.mopidy.registerMethod("core.playback.get_time_position", this.props.positionChanged);
         }
         if ("trackListChanged" in this.props) {
-            this.mopidy.registerMethod("core.tracklist.get_tracks", this.props.trackListChanged)
+            this.mopidy.registerMethod("core.tracklist.get_tl_tracks", this.props.trackListChanged)
         }
         if ("indexChanged" in this.props) {
             this.mopidy.registerMethod("core.tracklist.index", this.props.indexChanged)
         }
     }
-    mopidyAction(action) {
+    mopidyAction(action, params={}) {
         switch(action) {
             case "resume":
                 this.mopidy.resume();
@@ -50,13 +50,16 @@ class App extends Component {
             case "next":
                 this.mopidy.next();
                 break;
+            case "select":
+                if ("index" in params) this.mopidy.select(params.index);
+                break;
         }
     }
     render() {
         const { track, state, position, tracks, index } = this.props;
         return (
             <div>
-                <Tracklist tracks={ tracks } index={ index } />
+                <Tracklist tracks={ tracks } index={ index } mopidyAction={ this.mopidyAction.bind(this)} />
                 <Player track={track} state={state} mopidyAction={this.mopidyAction.bind(this)} position={position} />
             </div>
         );

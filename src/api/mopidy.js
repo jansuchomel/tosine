@@ -13,8 +13,8 @@ export class MopidyPlayer {
     receiveMessage(rawData) {
         let data = JSON.parse(rawData);
         if (data.event == 'tracklist_changed') {
-            this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.get_tracks"}');
-            this.requests[this.lastId] = "core.tracklist.get_tracks";
+            this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.get_tl_tracks"}');
+            this.requests[this.lastId] = "core.tracklist.get_tl_tracks";
         }
         if (data.event in this.events) { // got an event
             // has the time position changed?
@@ -62,7 +62,7 @@ export class MopidyPlayer {
             else if ("result" in data && this.requests[data.id] == "core.playback.get_time_position") {
                 params['position'] = data.result;
             }
-            else if ("result" in data && this.requests[data.id] == "core.tracklist.get_tracks") {
+            else if ("result" in data && this.requests[data.id] == "core.tracklist.get_tl_tracks") {
                 params['tracks'] = data.result;
             }
             else if ("result" in data && this.requests[data.id] == "core.tracklist.index") {
@@ -90,8 +90,8 @@ export class MopidyPlayer {
         this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_time_position"}');
         this.requests[this.lastId] = "core.playback.get_time_position";
 
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.get_tracks"}');
-        this.requests[this.lastId] = "core.tracklist.get_tracks";
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.get_tl_tracks"}');
+        this.requests[this.lastId] = "core.tracklist.get_tl_tracks";
 
         this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.index"}');
         this.requests[this.lastId] = "core.tracklist.index";
@@ -112,5 +112,9 @@ export class MopidyPlayer {
     }
     next() {
         this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.next"}');
+    }
+    select(index=0) {
+        console.log("selecting index " + index)
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.play", "params": {"tlid":' + index +' }}');
     }
 }
