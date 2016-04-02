@@ -5,8 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "./node_modules/.bin/babel src -d dist",
-    "watch": "./node_modules/.bin/babel src -d dist --watch"
+    "build": "./node_modules/.bin/babel src -d dist -D",
+    "watch": "./node_modules/.bin/babel src -d dist -D --watch"
   },
   "author": "Jan Suchomel",
   "license": "GPL-3.0",
