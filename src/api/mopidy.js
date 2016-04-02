@@ -12,10 +12,19 @@ export class MopidyPlayer {
     }
     receiveMessage(rawData) {
         let data = JSON.parse(rawData);
-        console.log(data.event);
+        if (data.event == 'tracklist_changed') {
+            this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.get_tracks"}');
+            this.requests[this.lastId] = "core.tracklist.get_tracks";
+        }
         if (data.event in this.events) { // got an event
+            // has the time position changed?
+            this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_time_position"}');
+            this.requests[this.lastId] = "core.playback.get_time_position";
             let params = {};
             if (data.event == 'track_playback_started') {
+                this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.index"}');
+                this.requests[this.lastId] = "core.tracklist.index";
+
                 params['title'] = data.tl_track.track.name;
                 params['album'] = data.tl_track.track.album;
                 params['artists'] = data.tl_track.track.artists;
@@ -24,23 +33,44 @@ export class MopidyPlayer {
             else if (data.event == 'playback_state_changed') {
                 params['state'] = data.new_state
             }
-            this.events[data.event](params);
+            else if (data.event == 'seeked') {
+                params['position'] = data.time_position
+            }
+            if (data.event in this.events) this.events[data.event](params);
+
+            // Something may have changed, better check current track
+            this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_current_track"}');
+            this.requests[this.lastId] = "core.playback.get_current_track";
+
+
         }
         else if ("result" in data) { // got a response for a request
             let params = {};
-            if (this.requests[data.id] == 'core.playback.get_state') {
+            if ("result" in data &&  this.requests[data.id] == 'core.playback.get_state') {
                 params['state'] = data.result
             }
-            else if (this.requests[data.id] == "core.playback.get_current_track") {
+            else if ("result" in data
+            && data.result
+            && data.result !== undefined
+            && this.requests[data.id] == "core.playback.get_current_track") {
                 params['title'] = data.result.name;
                 params['album'] = data.result.album;
                 params['artists'] = data.result.artists;
                 params['duration'] = data.result.length;
 
             }
+            else if ("result" in data && this.requests[data.id] == "core.playback.get_time_position") {
+                params['position'] = data.result;
+            }
+            else if ("result" in data && this.requests[data.id] == "core.tracklist.get_tracks") {
+                params['tracks'] = data.result;
+            }
+            else if ("result" in data && this.requests[data.id] == "core.tracklist.index") {
+                params['index'] = data.result;
+            }
             if (this.requests[data.id] in this.methods) {
-              this.methods[this.requests[data.id]](params);
-              delete this.methods[this.requests[data.id]];
+                this.methods[this.requests[data.id]](params);
+                delete this.requests[data.id];
             }
         }
     }
@@ -56,6 +86,20 @@ export class MopidyPlayer {
 
         this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_current_track"}');
         this.requests[this.lastId] = "core.playback.get_current_track";
+
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_time_position"}');
+        this.requests[this.lastId] = "core.playback.get_time_position";
+
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.get_tracks"}');
+        this.requests[this.lastId] = "core.tracklist.get_tracks";
+
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.index"}');
+        this.requests[this.lastId] = "core.tracklist.index";
+
+        setInterval(() => {
+            this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_time_position"}');
+            this.requests[this.lastId] = "core.playback.get_time_position";
+        }, 2000);
     }
     resume() {
         this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.resume"}');

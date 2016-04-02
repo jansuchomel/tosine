@@ -5,8 +5,11 @@ import { connect } from 'react-redux';
 import { MopidyPlayer } from '../api/mopidy';
 
 import Player from '../components/Player';
+import Tracklist from '../components/Tracklist'
+
 import { songChanged } from '../actions/TrackActions';
-import { stateChanged } from '../actions/PlayerActions';
+import { stateChanged, positionChanged } from '../actions/PlayerActions';
+import { trackListChanged, indexChanged } from '../actions/TracklistActions'
 
 class App extends Component {
     constructor() {
@@ -21,15 +24,20 @@ class App extends Component {
         if ("stateChanged" in this.props) {
             this.mopidy.registerEvent("playback_state_changed", this.props.stateChanged);
             this.mopidy.registerMethod("core.playback.get_state", this.props.stateChanged);
-
+        }
+        if ("positionChanged" in this.props) {
+            this.mopidy.registerEvent("seeked", this.props.positionChanged);
+            this.mopidy.registerMethod("core.playback.get_time_position", this.props.positionChanged);
+        }
+        if ("trackListChanged" in this.props) {
+            this.mopidy.registerMethod("core.tracklist.get_tracks", this.props.trackListChanged)
+        }
+        if ("indexChanged" in this.props) {
+            this.mopidy.registerMethod("core.tracklist.index", this.props.indexChanged)
         }
     }
     mopidyAction(action) {
-        console.log(action);
         switch(action) {
-            case "initialize":
-                this.mopidy.initialize();
-                break;
             case "resume":
                 this.mopidy.resume();
                 break;
@@ -45,9 +53,12 @@ class App extends Component {
         }
     }
     render() {
-        const { track, state } = this.props;
+        const { track, state, position, tracks, index } = this.props;
         return (
-            <Player track={track} state={state} mopidyAction={this.mopidyAction.bind(this)} />
+            <div>
+                <Tracklist tracks={ tracks } index={ index } />
+                <Player track={track} state={state} mopidyAction={this.mopidyAction.bind(this)} position={position} />
+            </div>
         );
     }
 }
@@ -56,7 +67,10 @@ class App extends Component {
 function mapStateToProps(state) {
     return {
         track: state.track,
-        state: state.player.state
+        state: state.player.state,
+        position: state.player.position,
+        tracks: state.tracklist.tracks,
+        index: state.tracklist.index
     };
 }
 
@@ -64,7 +78,10 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         songChanged: (track) => dispatch(songChanged(track)),
-        stateChanged: (state) => dispatch(stateChanged(state))
+        stateChanged: (state) => dispatch(stateChanged(state)),
+        positionChanged: (state) => dispatch(positionChanged(state)),
+        trackListChanged: (state) => dispatch(trackListChanged(state)),
+        indexChanged: (state) => dispatch(indexChanged(state))
     };
 }
 

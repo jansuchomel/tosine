@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 
 export default class Player extends Component {
     render() {
-        const { track, state, mopidyAction } = this.props;
+        const { track, state, mopidyAction, position } = this.props;
 
         let artistComps = [];
         if (track.artists != undefined) {
@@ -18,6 +18,7 @@ export default class Player extends Component {
             by { artistComps }
             from <b> { track.album.name }</b>
             <Control state={ state } mopidyAction={ mopidyAction } />
+            <SeekBar duration={ track.duration } position={position} state={state} />
         </div>);
     }
 }
@@ -42,6 +43,9 @@ class Control extends Component {
         if ( state == "playing" ) {
             playPause = <a onClick={ this.pause.bind(this) }> pause </a>;
         }
+        else if ( state == "stopped" ) {
+            playPause = <b>stopped</b>
+        }
 
         return (
             <div>
@@ -50,5 +54,36 @@ class Control extends Component {
                 <a onClick={ this.next.bind(this) }> next </a>
             </div>
         )
+    }
+}
+
+class SeekBar extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {position: props.position};
+    }
+    componentDidMount() {
+        setInterval(() => {
+            this.tick();
+        }, 100);
+        this.setState({position: this.props.position});
+    }
+    componentWillReceiveProps(nextProps) {
+        this.setState({position: nextProps.position});
+    }
+    tick() {
+        if (this.props.state == "playing") {
+            this.setState({position: this.state.position + 100});
+            this.state.step++;
+        }
+    }
+    render() {
+        const { duration } = this.props;
+        if (this.state && "position" in this.state) {
+            return <b>{ this.state.position / 1000}/{duration / 1000}</b>
+        }
+        else {
+            return <b>ERROR</b>
+        }
     }
 }
