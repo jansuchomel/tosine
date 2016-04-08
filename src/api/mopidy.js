@@ -66,7 +66,6 @@ export class MopidyPlayer {
                 params['tracks'] = data.result;
             }
             else if ("result" in data && this.requests[data.id] == "core.tracklist.index") {
-                console.log(data.result);
                 params['index'] = data.result;
             }
             if (this.requests[data.id] in this.methods) {

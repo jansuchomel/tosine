@@ -80,9 +80,8 @@ class App extends Component {
                     </Navbar.Header>
                     <Navbar.Collapse>
                       <Navbar.Form pullLeft>
-                        <Input type="text" placeholder="Search"/>
+                        <Input type="text"  />
                         {' '}
-                        <Button type="submit">Submit</Button>
                       </Navbar.Form>
                     </Navbar.Collapse>
                 </Navbar>
@@ -124,9 +123,9 @@ function mapDispatchToProps(dispatch) {
     return {
         songChanged: (track) => dispatch(songChanged(track)),
         stateChanged: (state) => dispatch(stateChanged(state)),
-        positionChanged: (state) => dispatch(positionChanged(state)),
-        trackListChanged: (state) => dispatch(trackListChanged(state)),
-        indexChanged: (state) => dispatch(indexChanged(state))
+        positionChanged: (position) => dispatch(positionChanged(position)),
+        trackListChanged: (trackList) => dispatch(trackListChanged(trackList)),
+        indexChanged: (index) => dispatch(indexChanged(index))
     };
 }
 
