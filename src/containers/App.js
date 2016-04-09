@@ -63,6 +63,9 @@ class App extends Component {
             case "select":
                 if ("index" in params) this.mopidy.select(params.index);
                 break;
+            case "remove":
+                if ("tracks" in params) this.mopidy.removeFromTracklist(params.tracks);
+                break
         }
     }
     render() {

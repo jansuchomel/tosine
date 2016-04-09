@@ -8,7 +8,7 @@ export class MopidyPlayer {
         this.requests = {};
         this.lastId = 0;
         this.ws.on('message', this._receiveMessage.bind(this));
-        this.ws.on('open', this.initialize.bind(this));
+        this.ws.on('open', this._initialize.bind(this));
     }
     _receiveMessage(rawData) {
         let data = JSON.parse(rawData);
@@ -25,7 +25,7 @@ export class MopidyPlayer {
     registerMethod(type, f) {
         this.methods[type] = f;
     }
-    initialize() {
+    _initialize() {
         this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_state"}');
         this.requests[this.lastId] = "core.playback.get_state";
 
@@ -60,6 +60,9 @@ export class MopidyPlayer {
     }
     select(index=0) {
         this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.play", "params": {"tlid":' + index +' }}');
+    }
+    removeFromTracklist(tracks=[]) {
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.remove", "params": {"tlid":[' + tracks +'] }}');
     }
     _handleEvent(data) {
         // has the time position changed?

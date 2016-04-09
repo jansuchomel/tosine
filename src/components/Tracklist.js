@@ -66,7 +66,11 @@ export default class Tracklist extends Component {
             activeKeyModifiers: keySet
         });
         if (event.key == 'Delete') {
-            console.log("deleting");
+            let tracks = [];
+            for (let index of this.state.selectedItems) {
+                tracks.push(this.props.tracks[index].tlid);
+            }
+            this.props.mopidyAction("remove", {tracks: tracks});
         }
     }
     render() {
@@ -83,12 +87,12 @@ export default class Tracklist extends Component {
                     }
                     tracksComps.push(
                       <ListGroupItem
-                        key={"track_" + track.tlid}
-                        onClick={this.select.bind(this, i)}
-                        onDoubleClick={this.playIndex.bind(this, track.tlid)}
-                        bsStyle={bsStyle}>
-                        <b>{track.track.artists[0].name}</b> {track.track.name}
-                        </ListGroupItem>
+                          key={"track_" + track.tlid}
+                          onClick={this.select.bind(this, i)}
+                          onDoubleClick={this.playIndex.bind(this, track.tlid)}
+                          bsStyle={bsStyle}>
+                          <b>{track.track.artists[0].name}</b> {track.track.name}
+                      </ListGroupItem>
                     );
                 }
           }.bind(this));
