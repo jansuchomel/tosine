@@ -6,7 +6,7 @@ export class MopidyPlayer {
         this.events = {};
         this.methods = {};
         this.requests = {};
-        this.lastId = 0;
+        this.lastId = 256; // reserve first 256 ids
         this.ws.on('message', this._receiveMessage.bind(this));
         this.ws.on('open', this._initialize.bind(this));
     }
@@ -31,7 +31,8 @@ export class MopidyPlayer {
         this._sendRequest("core.playback.get_time_position");
         this._sendRequest("core.tracklist.get_tl_tracks");
         this._sendRequest("core.tracklist.index");
-        this._sendRequest("core.library.browse");
+
+        this._sendRequest("core.library.browse", true, {}, 0);
 
         setInterval(() => {
             this._sendRequest("core.playback.get_time_position");
@@ -100,13 +101,32 @@ export class MopidyPlayer {
         else if (this.requests[id] == "core.tracklist.index") {
             params['index'] = response;
         }
+        else if (this.requests[id] == "core.library.browse") {
+            if (id == 0) {
+                for (let library of response) {
+                    if (library.uri == 'local:directory') {
+                        this._sendRequest("core.library.browse", true, {uri: 'local:directory'});
+                    }
+                    else if (library.uri == 'gmusic:directory') {
+                        this._sendRequest("core.library.browse", true, {uri: 'gmusic:artist'});
+                    }
+                    // else we don't know how to get artist list from the library
+
+                    params.artists = [];
+                }
+            }
+            else {
+                params.artists = response;
+            }
+        }
         if (this.requests[id] in this.methods) {
             this.methods[this.requests[id]](params);
             delete this.requests[id];
         }
     }
-    _sendRequest(method, register=true, params={}) {
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "' + method +'", "params": '+JSON.stringify(params)+'}');
-        if (register==true) this.requests[this.lastId] = method;
+    _sendRequest(method, register=true, params={}, id=this.lastId++) {
+        if (method == "core.library.browse" && !("uri" in params)) params['uri'] = null; // the uri parameter needs to be set even if null
+        this.ws.send('{"jsonrpc": "2.0", "id": ' + id +', "method": "' + method +'", "params": '+JSON.stringify(params)+'}');
+        if (register==true) this.requests[id] = method;
     }
 }

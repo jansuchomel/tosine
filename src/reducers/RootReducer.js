@@ -10,7 +10,7 @@ import TracklistReducer from './TracklistReducer';
 export default combineReducers({
   player: PlayerReducer,
   track: TrackReducer,
-  playlist: PlaylistReducer,
   library: LibraryReducer,
-  tracklist: TracklistReducer
+  tracklist: TracklistReducer,
+  playlist: PlaylistReducer
 });

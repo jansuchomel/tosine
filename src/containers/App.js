@@ -5,11 +5,13 @@ import { connect } from 'react-redux';
 import { MopidyPlayer } from '../api/mopidy';
 
 import Player from '../components/Player';
-import Tracklist from '../components/Tracklist'
+import Tracklist from '../components/Tracklist';
+import Library from '../components/Library';
 
 import { songChanged } from '../actions/TrackActions';
 import { stateChanged, positionChanged } from '../actions/PlayerActions';
 import { trackListChanged, indexChanged } from '../actions/TracklistActions'
+import { libraryUpdated } from '../actions/LibraryActions'
 
 import Panel from 'react-bootstrap/lib/Panel';
 import Row from 'react-bootstrap/lib/Row';
@@ -21,8 +23,8 @@ import Button from 'react-bootstrap/lib/Button';
 
 
 class App extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.mopidy = new MopidyPlayer();
     }
     componentDidMount() {
@@ -45,6 +47,9 @@ class App extends Component {
         if ("indexChanged" in this.props) {
             this.mopidy.registerMethod("core.tracklist.index", this.props.indexChanged)
         }
+        if ("libraryUpdated" in this.props) {
+            this.mopidy.registerMethod("core.library.browse", this.props.libraryUpdated);
+        }
     }
     mopidyAction(action, params={}) {
         switch(action) {
@@ -65,11 +70,12 @@ class App extends Component {
                 break;
             case "remove":
                 if ("tracks" in params) this.mopidy.removeFromTracklist(params.tracks);
-                break
+                break;
         }
     }
     render() {
-        const { track, state, position, tracks, index } = this.props;
+        const { track, state, position, tracks, index, library } = this.props;
+
         return (
             <div>
                 <Navbar fixedBottom={true}>
@@ -77,22 +83,22 @@ class App extends Component {
                 </Navbar>
                 <Navbar staticTop={true}>
                     <Navbar.Header>
-                      <Navbar.Brand>
-                        <a href="#">tosine</a>
-                      </Navbar.Brand>
-                      <Navbar.Toggle />
+                        <Navbar.Brand>
+                            <a href="#">tosine</a>
+                        </Navbar.Brand>
+                        <Navbar.Toggle />
                     </Navbar.Header>
                     <Navbar.Collapse>
-                      <Navbar.Form pullLeft>
-                        <Input type="text"  />
-                        {' '}
-                      </Navbar.Form>
+                        <Navbar.Form pullLeft>
+                            <Input type="text"  />
+                            {' '}
+                        </Navbar.Form>
                     </Navbar.Collapse>
                 </Navbar>
                 <Row className={"content"}>
                     <Col md={4}>
                         <Panel>
-                          <b>TODO: library</b>
+                            <Library artists={library} />
                         </Panel>
                     </Col>
                     <Col md={5}>
@@ -101,9 +107,9 @@ class App extends Component {
                         </Panel>
                     </Col>
                     <Col md={3}>
-                    <Panel>
-                      <b>TODO: details</b>
-                    </Panel>
+                        <Panel>
+                            <b>TODO: details</b>
+                        </Panel>
                     </Col>
                 </Row>
             </div>
@@ -118,7 +124,8 @@ function mapStateToProps(state) {
         state: state.player.state,
         position: state.player.position,
         tracks: state.tracklist.tracks,
-        index: state.tracklist.index
+        index: state.tracklist.index,
+        library: state.library
     };
 }
 
@@ -129,7 +136,8 @@ function mapDispatchToProps(dispatch) {
         stateChanged: (state) => dispatch(stateChanged(state)),
         positionChanged: (position) => dispatch(positionChanged(position)),
         trackListChanged: (trackList) => dispatch(trackListChanged(trackList)),
-        indexChanged: (index) => dispatch(indexChanged(index))
+        indexChanged: (index) => dispatch(indexChanged(index)),
+        libraryUpdated: (artists) => dispatch(libraryUpdated(artists))
     };
 }
 

@@ -1,8 +1,25 @@
+:root {
+  --navbar-height: 80px;
+  --player-height: 80px;
+  --content-padding: 15px;
+
+}
+
 body {
     overflow: hidden;
-    padding-bottom: 80px;
+    height: calc(100vh - var(--navbar-height));
+    width: 100vw;
 }
 
 .content {
-    padding: 0px 15px;
+    padding: 0px var(--content-padding);
+}
+
+.content div {
+    max-height: calc(100vh - var(--navbar-height) - var(--player-height));
+}
+
+.library {
+    overflow-y: scroll;
+    height: calc(100vh - var(--navbar-height) - var(--player-height) - 2 * var(--content-padding))
 }
