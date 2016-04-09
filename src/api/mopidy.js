@@ -26,48 +26,37 @@ export class MopidyPlayer {
         this.methods[type] = f;
     }
     _initialize() {
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_state"}');
-        this.requests[this.lastId] = "core.playback.get_state";
-
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_current_track"}');
-        this.requests[this.lastId] = "core.playback.get_current_track";
-
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_time_position"}');
-        this.requests[this.lastId] = "core.playback.get_time_position";
-
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.get_tl_tracks"}');
-        this.requests[this.lastId] = "core.tracklist.get_tl_tracks";
-
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.index"}');
-        this.requests[this.lastId] = "core.tracklist.index";
+        this._sendRequest("core.playback.get_state");
+        this._sendRequest("core.playback.get_current_track");
+        this._sendRequest("core.playback.get_time_position");
+        this._sendRequest("core.tracklist.get_tl_tracks");
+        this._sendRequest("core.tracklist.index");
+        this._sendRequest("core.library.browse");
 
         setInterval(() => {
-            this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_time_position"}');
-            this.requests[this.lastId] = "core.playback.get_time_position";
+            this._sendRequest("core.playback.get_time_position");
         }, 2000);
     }
     resume() {
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.resume"}');
+        this._sendRequest("core.playback.resume", false);
     }
     pause() {
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.pause"}');
+        this._sendRequest("core.playback.pause", false);
     }
     previous() {
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.previous"}');
+        this._sendRequest("core.playback.previous", false);
     }
     next() {
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.next"}');
+        this._sendRequest("core.playback.next", false);
     }
     select(index=0) {
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.play", "params": {"tlid":' + index +' }}');
+        this._sendRequest("core.playback.play", false, {tlid: index});
     }
     removeFromTracklist(tracks=[]) {
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.tracklist.remove", "params": {"tlid":[' + tracks +'] }}');
+        this._sendRequest("core.tracklist.remove", false, {tlid: tracks});
     }
     _handleEvent(data) {
-        // has the time position changed?
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "core.playback.get_time_position"}');
-        this.requests[this.lastId] = "core.playback.get_time_position";
+        this._sendRequest(core.playback.get_time_position); // has the time position changed?
 
         let params = {};
         if (data.event == 'track_playback_started') {
@@ -117,5 +106,14 @@ export class MopidyPlayer {
             this.methods[this.requests[id]](params);
             delete this.requests[id];
         }
+    }
+    _sendRequest(method, register=true, params={}) {
+        if (Object.keys(params).length > 0) {
+            this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "' + method +'", "params": '+JSON.stringify(params)+'}');
+        }
+        else {
+            this.ws.send('{"jsonrpc": "2.0", "id": ' + ++this.lastId +', "method": "' + method + '"}');
+        }
+        if (register==true) this.requests[this.lastId] = method;
     }
 }
