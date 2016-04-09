@@ -39,7 +39,8 @@ class App extends Component {
             this.mopidy.registerMethod("core.playback.get_time_position", this.props.positionChanged);
         }
         if ("trackListChanged" in this.props) {
-            this.mopidy.registerMethod("core.tracklist.get_tl_tracks", this.props.trackListChanged)
+            this.mopidy.registerEvent("tracklist_changed", () => {});
+            this.mopidy.registerMethod("core.tracklist.get_tl_tracks", this.props.trackListChanged);
         }
         if ("indexChanged" in this.props) {
             this.mopidy.registerMethod("core.tracklist.index", this.props.indexChanged)
