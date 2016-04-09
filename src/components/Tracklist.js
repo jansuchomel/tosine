@@ -10,11 +10,16 @@ export default class Tracklist extends Component {
         this.state = {
             selectedItems: new Set(),
             lastSelected: -1,
-            activeKeyModifiers: new Set
+            activeKeyModifiers: new Set,
+            active: props.index
         };
     }
-    playIndex(index) {
+    playIndex(index, i) {
+        this.setState({active: i}); // Lets be optimistic
         this.props.mopidyAction("select", {index: index});
+    }
+    componentWillReceiveProps(props) {
+        this.setState({active: props.index});
     }
     select(index) {
         if (this.state.activeKeyModifiers.has("Shift")) {
@@ -81,7 +86,7 @@ export default class Tracklist extends Component {
             tracks.forEach(function (track, i) {
                 if ("track" in track) {
                     let bsStyle = null;
-                    if (i == index) bsStyle = "success";
+                    if (i == this.state.active) bsStyle = "success";
                     else if (this.state.selectedItems.has(i)) {
                         bsStyle = "info";
                     }
@@ -89,7 +94,7 @@ export default class Tracklist extends Component {
                       <ListGroupItem
                           key={"track_" + track.tlid}
                           onClick={this.select.bind(this, i)}
-                          onDoubleClick={this.playIndex.bind(this, track.tlid)}
+                          onDoubleClick={this.playIndex.bind(this, track.tlid, i)}
                           bsStyle={bsStyle}>
                           <b>{track.track.artists[0].name}</b> {track.track.name}
                       </ListGroupItem>

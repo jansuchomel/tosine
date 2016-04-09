@@ -11,7 +11,7 @@ import Library from '../components/Library';
 import { songChanged } from '../actions/TrackActions';
 import { stateChanged, positionChanged } from '../actions/PlayerActions';
 import { trackListChanged, indexChanged } from '../actions/TracklistActions'
-import { libraryUpdated } from '../actions/LibraryActions'
+import { libraryUpdated, libraryExpanded } from '../actions/LibraryActions'
 
 import Panel from 'react-bootstrap/lib/Panel';
 import Row from 'react-bootstrap/lib/Row';
@@ -19,6 +19,7 @@ import Col from 'react-bootstrap/lib/Col';
 import Navbar from 'react-bootstrap/lib/Navbar';
 import Input from 'react-bootstrap/lib/Input';
 import Button from 'react-bootstrap/lib/Button';
+import Well from 'react-bootstrap/lib/Well';
 
 
 
@@ -48,7 +49,10 @@ class App extends Component {
             this.mopidy.registerMethod("core.tracklist.index", this.props.indexChanged)
         }
         if ("libraryUpdated" in this.props) {
-            this.mopidy.registerMethod("core.library.browse", this.props.libraryUpdated);
+            this.mopidy.registerMethod("core.library.browse", params => {
+                if (params["type"] == 'artists') this.props.libraryUpdated({artists: params.artists});
+                else if (params.type == 'albums') this.props.libraryExpanded({artist: params.artist, albums: params.albums});
+            });
         }
     }
     mopidyAction(action, params={}) {
@@ -71,6 +75,8 @@ class App extends Component {
             case "remove":
                 if ("tracks" in params) this.mopidy.removeFromTracklist(params.tracks);
                 break;
+            case "expandArtist":
+                if ("uris" in params) this.mopidy.expandArtist(params.artist, params.uris);
         }
     }
     render() {
@@ -98,7 +104,7 @@ class App extends Component {
                 <Row className={"content"}>
                     <Col md={4}>
                         <Panel>
-                            <Library artists={library} />
+                            <Library artists={library} mopidyAction={ this.mopidyAction.bind(this) } />
                         </Panel>
                     </Col>
                     <Col md={5}>
@@ -137,7 +143,8 @@ function mapDispatchToProps(dispatch) {
         positionChanged: (position) => dispatch(positionChanged(position)),
         trackListChanged: (trackList) => dispatch(trackListChanged(trackList)),
         indexChanged: (index) => dispatch(indexChanged(index)),
-        libraryUpdated: (artists) => dispatch(libraryUpdated(artists))
+        libraryUpdated: (artists) => dispatch(libraryUpdated(artists)),
+        libraryExpanded: (artist) => dispatch(libraryExpanded(artist))
     };
 }
 

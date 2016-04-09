@@ -20,6 +20,17 @@ body {
 }
 
 .library {
-    overflow-y: scroll;
     height: calc(100vh - var(--navbar-height) - var(--player-height) - 2 * var(--content-padding))
+}
+
+li {
+    height: 40px;
+}
+
+li.album {
+    margin-left: 20px;
+}
+
+li.track {
+    margin-left: 40px;
 }

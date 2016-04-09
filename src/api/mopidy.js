@@ -6,7 +6,7 @@ export class MopidyPlayer {
         this.events = {};
         this.methods = {};
         this.requests = {};
-        this.lastId = 256; // reserve first 256 ids
+        this.lastId = 0;
         this.ws.on('message', this._receiveMessage.bind(this));
         this.ws.on('open', this._initialize.bind(this));
     }
@@ -15,7 +15,7 @@ export class MopidyPlayer {
         if (data.event in this.events) { // got an event
             this._handleEvent(data);
         }
-        else if ("result" in data) { // got a response for a request
+        else if ("result" in data && data.result != null) { // got a response for a request
             this._handleResponse(data.id, data.result);
         }
     }
@@ -32,7 +32,7 @@ export class MopidyPlayer {
         this._sendRequest("core.tracklist.get_tl_tracks");
         this._sendRequest("core.tracklist.index");
 
-        this._sendRequest("core.library.browse", true, {}, 0);
+        this._sendRequest("core.library.browse", true, {}, "library_" + ++this.lastId);
 
         setInterval(() => {
             this._sendRequest("core.playback.get_time_position");
@@ -55,6 +55,11 @@ export class MopidyPlayer {
     }
     removeFromTracklist(tracks=[]) {
         this._sendRequest("core.tracklist.remove", false, {tlid: tracks});
+    }
+    expandArtist(artist, uris=[]) {
+        for (let uri of uris) {
+            this._sendRequest("core.library.browse", true, {uri: uri}, "albums_" + ++this.lastId, {artist: artist});
+        }
     }
     _handleEvent(data) {
         this._sendRequest("core.playback.get_time_position"); // has the time position changed?
@@ -82,51 +87,58 @@ export class MopidyPlayer {
     }
     _handleResponse(id, response) {
         let params = {};
-        if (this.requests[id] == 'core.playback.get_state') {
+        if (this.requests[id].method == 'core.playback.get_state') {
             params['state'] = response
         }
-        else if (response && this.requests[id] == "core.playback.get_current_track") {
+        else if (response && this.requests[id].method == "core.playback.get_current_track") {
             params['title'] = response.name;
             params['album'] = response.album;
             params['artists'] = response.artists;
             params['duration'] = response.length;
-
         }
-        else if (this.requests[id] == "core.playback.get_time_position") {
+        else if (this.requests[id].method == "core.playback.get_time_position") {
             params['position'] = response;
         }
-        else if (this.requests[id] == "core.tracklist.get_tl_tracks") {
+        else if (this.requests[id].method == "core.tracklist.get_tl_tracks") {
             params['tracks'] = response;
         }
-        else if (this.requests[id] == "core.tracklist.index") {
+        else if (this.requests[id].method == "core.tracklist.index") {
             params['index'] = response;
         }
-        else if (this.requests[id] == "core.library.browse") {
-            if (id == 0) {
+        else if (this.requests[id].method == "core.library.browse") {
+            if (id.indexOf("library_") == 0) {
+                params.type = "library";
                 for (let library of response) {
+
                     if (library.uri == 'local:directory') {
-                        this._sendRequest("core.library.browse", true, {uri: 'local:directory'});
+                        this._sendRequest("core.library.browse", true, {uri: 'local:directory'}, "artists_" + ++this.lastId);
                     }
                     else if (library.uri == 'gmusic:directory') {
-                        this._sendRequest("core.library.browse", true, {uri: 'gmusic:artist'});
+                        this._sendRequest("core.library.browse", true, {uri: 'gmusic:artist'}, "artists_" + ++this.lastId);
                     }
                     // else we don't know how to get artist list from the library
 
                     params.artists = [];
                 }
             }
-            else {
+            else if (id.indexOf("artists_") == 0) {
+                params.type = "artists";
                 params.artists = response;
             }
+            else if (id.indexOf("albums_") == 0) {
+                params.type = "albums";
+                params.albums = response;
+                params.artist = this.requests[id].remember['artist'];
+            }
         }
-        if (this.requests[id] in this.methods) {
-            this.methods[this.requests[id]](params);
+        if (this.requests[id].method in this.methods) {
+            this.methods[this.requests[id].method](params);
             delete this.requests[id];
         }
     }
-    _sendRequest(method, register=true, params={}, id=this.lastId++) {
+    _sendRequest(method, register=true, params={}, id=++this.lastId, remember={}) {
         if (method == "core.library.browse" && !("uri" in params)) params['uri'] = null; // the uri parameter needs to be set even if null
-        this.ws.send('{"jsonrpc": "2.0", "id": ' + id +', "method": "' + method +'", "params": '+JSON.stringify(params)+'}');
-        if (register==true) this.requests[id] = method;
+        this.ws.send('{"jsonrpc": "2.0", "id": "' + id +'", "method": "' + method +'", "params": '+JSON.stringify(params)+'}');
+        if (register==true) this.requests[id] = { method: method, remember:remember };
     }
 }
