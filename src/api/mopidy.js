@@ -7,10 +7,10 @@ export class MopidyPlayer {
         this.methods = {};
         this.requests = {};
         this.lastId = 0;
-        this.ws.on('message', this.receiveMessage.bind(this));
+        this.ws.on('message', this._receiveMessage.bind(this));
         this.ws.on('open', this.initialize.bind(this));
     }
-    receiveMessage(rawData) {
+    _receiveMessage(rawData) {
         let data = JSON.parse(rawData);
         if (data.event in this.events) { // got an event
             this._handleEvent(data);
