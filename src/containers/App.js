@@ -11,7 +11,7 @@ import Library from '../components/Library';
 import { songChanged } from '../actions/TrackActions';
 import { stateChanged, positionChanged } from '../actions/PlayerActions';
 import { trackListChanged, indexChanged } from '../actions/TracklistActions'
-import { libraryUpdated, libraryExpanded } from '../actions/LibraryActions'
+import { libraryUpdated, artistExpanded, albumExpanded } from '../actions/LibraryActions'
 
 import Panel from 'react-bootstrap/lib/Panel';
 import Row from 'react-bootstrap/lib/Row';
@@ -51,7 +51,8 @@ class App extends Component {
         if ("libraryUpdated" in this.props) {
             this.mopidy.registerMethod("core.library.browse", params => {
                 if (params["type"] == 'artists') this.props.libraryUpdated({artists: params.artists});
-                else if (params.type == 'albums') this.props.libraryExpanded({artist: params.artist, albums: params.albums});
+                else if (params.type == 'albums') this.props.artistExpanded({artist: params.artist, albums: params.albums});
+                else if (params.type == 'tracks') this.props.albumExpanded({artist: params.artist, album: params.album, tracks: params.tracks});
             });
         }
     }
@@ -76,7 +77,11 @@ class App extends Component {
                 if ("tracks" in params) this.mopidy.removeFromTracklist(params.tracks);
                 break;
             case "expandArtist":
-                if ("uris" in params) this.mopidy.expandArtist(params.artist, params.uris);
+                if ("uris" in params && params.uris != null) this.mopidy.expandArtist(params.artist, params.uris);
+                break;
+            case "expandAlbum":
+                if ("uris" in params && params.uris != null) this.mopidy.expandAlbum(params.artist, params.album, params.uris);
+                break;
         }
     }
     render() {
@@ -144,7 +149,8 @@ function mapDispatchToProps(dispatch) {
         trackListChanged: (trackList) => dispatch(trackListChanged(trackList)),
         indexChanged: (index) => dispatch(indexChanged(index)),
         libraryUpdated: (artists) => dispatch(libraryUpdated(artists)),
-        libraryExpanded: (artist) => dispatch(libraryExpanded(artist))
+        artistExpanded: (artist) => dispatch(artistExpanded(artist)),
+        albumExpanded: (album) => dispatch(albumExpanded(album))
     };
 }
 
