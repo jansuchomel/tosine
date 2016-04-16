@@ -1,11 +1,11 @@
 import { createStore, combineReducers, compose } from 'redux';
 import rootReducer from '../reducers/RootReducer';
-import DevTools from '../containers/DevTools';
+import DevTools from 'remote-redux-devtools';
 
 const enhancer = compose(
-  DevTools.instrument()
+    DevTools()
 );
 
 export default function configureStore(initialState) {
-  return createStore(rootReducer, initialState, enhancer);
+    return createStore(rootReducer, initialState, enhancer);
 }
