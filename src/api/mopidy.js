@@ -56,6 +56,10 @@ export class MopidyPlayer {
     removeFromTracklist(tracks=[]) {
         this._sendRequest("core.tracklist.remove", false, {tlid: tracks});
     }
+    addToTl(uri) {
+        console.log(uri);
+        this._sendRequest("core.tracklist.add", false, {uri: uri});
+    }
     expandLibrary(library, uri) {
         this._sendRequest("core.library.browse", true, {uri: uri}, "artists_" + ++this.lastId, {library: library});
     }

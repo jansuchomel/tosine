@@ -4,6 +4,8 @@ import { render } from 'react-dom';
 import ListGroup from 'react-bootstrap/lib/ListGroup';
 import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
 
+import { VirtualScroll, AutoSizer } from 'react-virtualized';
+
 export default class Tracklist extends Component {
     constructor(props) {
         super(props);
@@ -104,13 +106,23 @@ export default class Tracklist extends Component {
         }
 
         return (
-        <ListGroup
+        <ListGroup className="tracklist-list"
             onKeyPress={this.handleKeyPress.bind(this)}
             onKeyDown={this.handleKeyDown.bind(this)}
             onKeyUp={this.handleKeyUp.bind(this)}>
-            { tracksComps }
-            <ListGroupItem>
-              </ListGroupItem>
+            <AutoSizer>
+                {({ height, width }) => (
+                    <VirtualScroll
+                        width={width}
+                        height={height}
+                        rowsCount={tracksComps.length}
+                        rowHeight={40}
+                        rowRenderer={
+                            index => tracksComps[index] // Could also be a DOM element
+                        }
+                    />
+                )}
+            </AutoSizer>
         </ListGroup>);
     }
 }

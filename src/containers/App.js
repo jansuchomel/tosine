@@ -74,6 +74,9 @@ class App extends Component {
             case "remove":
                 if ("tracks" in params) this.mopidy.removeFromTracklist(params.tracks);
                 break;
+            case "addToTl":
+                this.mopidy.addToTl(params.uri);
+                break;
             case "expandLibrary":
                 this.mopidy.expandLibrary(params.library, params.uri);
                 break;
@@ -109,15 +112,11 @@ class App extends Component {
                 </Navbar>
                 <Row className={"content"}>
                     <Col md={4}>
-                        <Panel>
-                            <Library libraries={library} mopidyAction={ this.mopidyAction.bind(this) } />
-                        </Panel>
+                        <Library libraries={library} mopidyAction={ this.mopidyAction.bind(this) } />
                     </Col>
                     <Col md={5}>
-                        <Panel>
-                            <Tracklist tracks={ tracks } index={ index } mopidyAction={ this.mopidyAction.bind(this)} />
-                        </Panel>
-                    </Col>
+                        <Tracklist tracks={ tracks } index={ index } mopidyAction={ this.mopidyAction.bind(this)} />
+                </Col>
                     <Col md={3}>
                         <Panel>
                             <b>TODO: details</b>

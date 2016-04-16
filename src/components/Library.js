@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 
-import ListGroup from 'react-bootstrap/lib/ListGroup';
-import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
-
 import { VirtualScroll, AutoSizer } from 'react-virtualized';
 
 export default class Library extends Component {
@@ -16,36 +13,43 @@ export default class Library extends Component {
     expandAlbum(library, artist, album, uri) {
         this.props.mopidyAction("expandAlbum", {library:library, artist:artist, album:album, uri: uri});
     }
+    addToTl(uri) {
+        this.props.mopidyAction("addToTl", {uri: uri});
+    }
     render() {
         const { libraries, mopidyAction } = this.props;
         let comps = [];
         libraries.forEach((library, libraryName) => {
             comps.push(
-                <li className="library" key={libraryName} onClick={this.expandLibrary.bind(this, libraryName, library.get("uri"))}>
+                <span className="list-group-item level0" key={libraryName} onClick={this.expandLibrary.bind(this, libraryName, library.get("uri"))}>
                     {libraryName}
-                </li>);
+                    <a onClick={this.addToTl.bind(this, library.get("uri"))}>+</a>
+                </span>);
                 library.get("artists").forEach((artist, artistName) => {
                     comps.push(
-                        <li className="artist" key={artistName} onClick={this.expandArtist.bind(this, libraryName, artistName, artist.get("uri"))}>
+                        <span className="list-group-item level1" key={artistName} onClick={this.expandArtist.bind(this, libraryName, artistName, artist.get("uri"))}>
                             {artistName}
-                        </li>);
+                            <a onClick={this.addToTl.bind(this, artist.get("uri"))}>+</a>
+                        </span>);
                         if (artist.has("albums")) {
                             let i = 0;
                              artist.get("albums").forEach((album, albumName) => {
                                 comps.push(
-                                    <li className="album"
+                                    <span className="list-group-item level2"
                                         key={"album_" + artistName + "_" + ++i}
                                         onClick={this.expandAlbum.bind(this, libraryName, artistName, albumName, album.get("uri"))}>
                                         {albumName}
-                                    </li>);
+                                        <a onClick={this.addToTl.bind(this, album.get("uri"))}>+</a>
+                                    </span>);
                                     let j = 0;
                                     let tracks = album.get("tracks");
                                     tracks.forEach((track, trackName) => {
                                         comps.push(
-                                            <li className="track"
+                                            <span className="list-group-item level3"
                                                 key={"track_" + trackName + "_" + ++j}>
                                                 {track.get("name")}
-                                            </li>
+                                                <a onClick={this.addToTl.bind(this, track.get("uri"))}>+</a>
+                                            </span>
                                         );
                                     });
                             });
@@ -55,7 +59,7 @@ export default class Library extends Component {
         })
 
         return (
-            <div className="library">
+            <div className="library-list list-group list-group-root">
                 <AutoSizer>
                     {({ height, width }) => (
                         <VirtualScroll
@@ -68,8 +72,8 @@ export default class Library extends Component {
                             }
                         />
                     )}
-                    </AutoSizer>
-                </div>
+                </AutoSizer>
+            </div>
         );
     }
 }

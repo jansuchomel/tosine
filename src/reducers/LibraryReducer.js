@@ -19,6 +19,7 @@ export default function(state = defaultState, action) {
         case "LIBRARY_EXPANDED":
             return state.withMutations(mutatedState => {
                 for (let artist of action.artists) {
+                    if (artist.name.trim() == "") continue;
                     mutatedState.setIn([action.library, "artists", artist.name], Map({uri: artist.uri, albums: Map({}), name: artist.name}));
                 }
             });
