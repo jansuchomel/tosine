@@ -11,7 +11,7 @@ import Library from '../components/Library';
 import { songChanged } from '../actions/TrackActions';
 import { stateChanged, positionChanged } from '../actions/PlayerActions';
 import { trackListChanged, indexChanged } from '../actions/TracklistActions'
-import { libraryUpdated, artistExpanded, albumExpanded } from '../actions/LibraryActions'
+import { librariesGot, libraryExpanded, artistExpanded, albumExpanded, trackExpanded } from '../actions/LibraryActions'
 
 import Panel from 'react-bootstrap/lib/Panel';
 import Row from 'react-bootstrap/lib/Row';
@@ -29,32 +29,30 @@ class App extends Component {
         this.mopidy = new MopidyPlayer();
     }
     componentDidMount() {
-        if ("songChanged" in this.props) {
-            this.mopidy.registerEvent("track_playback_started", this.props.songChanged);
-            this.mopidy.registerMethod("core.playback.get_current_track", this.props.songChanged);
-        }
-        if ("stateChanged" in this.props) {
-            this.mopidy.registerEvent("playback_state_changed", this.props.stateChanged);
-            this.mopidy.registerMethod("core.playback.get_state", this.props.stateChanged);
-        }
-        if ("positionChanged" in this.props) {
-            this.mopidy.registerEvent("seeked", this.props.positionChanged);
-            this.mopidy.registerMethod("core.playback.get_time_position", this.props.positionChanged);
-        }
-        if ("trackListChanged" in this.props) {
-            this.mopidy.registerEvent("tracklist_changed", () => {});
-            this.mopidy.registerMethod("core.tracklist.get_tl_tracks", this.props.trackListChanged);
-        }
-        if ("indexChanged" in this.props) {
-            this.mopidy.registerMethod("core.tracklist.index", this.props.indexChanged)
-        }
-        if ("libraryUpdated" in this.props) {
-            this.mopidy.registerMethod("core.library.browse", params => {
-                if (params["type"] == 'artists') this.props.libraryUpdated({artists: params.artists});
-                else if (params.type == 'albums') this.props.artistExpanded({artist: params.artist, albums: params.albums});
-                else if (params.type == 'tracks') this.props.albumExpanded({artist: params.artist, album: params.album, tracks: params.tracks});
+        this.mopidy.registerEvent("track_playback_started", this.props.songChanged);
+        this.mopidy.registerMethod("core.playback.get_current_track", this.props.songChanged);
+        this.mopidy.registerEvent("playback_state_changed", this.props.stateChanged);
+        this.mopidy.registerMethod("core.playback.get_state", this.props.stateChanged);
+        this.mopidy.registerEvent("seeked", this.props.positionChanged);
+        this.mopidy.registerMethod("core.playback.get_time_position", this.props.positionChanged);
+        this.mopidy.registerEvent("tracklist_changed", () => {});
+        this.mopidy.registerMethod("core.tracklist.get_tl_tracks", this.props.trackListChanged);
+        this.mopidy.registerMethod("core.tracklist.index", this.props.indexChanged)
+        this.mopidy.registerMethod("core.library.browse", params => {
+            if (params["type"] == 'library') this.props.librariesGot({libraries: params.libraries});
+            else if (params["type"] == 'artists') this.props.libraryExpanded({library: params.library, artists: params.artists});
+            else if (params.type == 'albums') this.props.artistExpanded({library: params.library, artist: params.artist, albums: params.albums});
+            else if (params.type == 'tracks') this.props.albumExpanded({
+                library: params.library,
+                artist: params.artist,
+                album: params.album,
+                tracks: params.tracks,
+                callback: local_params => {
+                    this.mopidy.expandTrack(local_params.library, local_params.artist, local_params.album, local_params.track, local_params.uri);
+                }
             });
-        }
+        });
+        this.mopidy.registerMethod("core.library.lookup", this.props.trackExpanded)
     }
     mopidyAction(action, params={}) {
         switch(action) {
@@ -76,11 +74,14 @@ class App extends Component {
             case "remove":
                 if ("tracks" in params) this.mopidy.removeFromTracklist(params.tracks);
                 break;
+            case "expandLibrary":
+                this.mopidy.expandLibrary(params.library, params.uri);
+                break;
             case "expandArtist":
-                if ("uris" in params && params.uris != null) this.mopidy.expandArtist(params.artist, params.uris);
+                this.mopidy.expandArtist(params.library, params.artist, params.uri);
                 break;
             case "expandAlbum":
-                if ("uris" in params && params.uris != null) this.mopidy.expandAlbum(params.artist, params.album, params.uris);
+                this.mopidy.expandAlbum(params.library, params.artist, params.album, params.uri);
                 break;
         }
     }
@@ -109,7 +110,7 @@ class App extends Component {
                 <Row className={"content"}>
                     <Col md={4}>
                         <Panel>
-                            <Library artists={library} mopidyAction={ this.mopidyAction.bind(this) } />
+                            <Library libraries={library} mopidyAction={ this.mopidyAction.bind(this) } />
                         </Panel>
                     </Col>
                     <Col md={5}>
@@ -148,9 +149,11 @@ function mapDispatchToProps(dispatch) {
         positionChanged: (position) => dispatch(positionChanged(position)),
         trackListChanged: (trackList) => dispatch(trackListChanged(trackList)),
         indexChanged: (index) => dispatch(indexChanged(index)),
-        libraryUpdated: (artists) => dispatch(libraryUpdated(artists)),
+        libraryExpanded: (artists) => dispatch(libraryExpanded(artists)),
         artistExpanded: (artist) => dispatch(artistExpanded(artist)),
-        albumExpanded: (album) => dispatch(albumExpanded(album))
+        albumExpanded: (album) => dispatch(albumExpanded(album)),
+        trackExpanded: (album) => dispatch(trackExpanded(album)),
+        librariesGot: (library) => dispatch(librariesGot(library))
     };
 }
 

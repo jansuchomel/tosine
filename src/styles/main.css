@@ -27,10 +27,18 @@ li {
     height: 40px;
 }
 
-li.album {
+li.library {
+
+}
+
+li.artist {
     margin-left: 20px;
 }
 
-li.track {
+li.album {
     margin-left: 40px;
+}
+
+li.track {
+    margin-left: 60px;
 }

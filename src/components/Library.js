@@ -7,51 +7,52 @@ import ListGroupItem from 'react-bootstrap/lib/ListGroupItem';
 import { VirtualScroll, AutoSizer } from 'react-virtualized';
 
 export default class Library extends Component {
-    expandArtist(artist, uris) {
-        this.props.mopidyAction("expandArtist", {artist:artist, uris: uris});
+    expandLibrary(library, uri) {
+        this.props.mopidyAction("expandLibrary", {library: library, uri: uri});
     }
-    expandAlbum(artist, album, uris) {
-        this.props.mopidyAction("expandAlbum", {artist:artist, album:album, uris: uris});
+    expandArtist(library, artist, uri) {
+        this.props.mopidyAction("expandArtist", {library: library, artist:artist, uri: uri});
     }
-    renderItem(index, key) {
-      return <div key={key}>{index}</div>;
+    expandAlbum(library, artist, album, uri) {
+        this.props.mopidyAction("expandAlbum", {library:library, artist:artist, album:album, uri: uri});
     }
     render() {
-        const { artists, mopidyAction } = this.props;
+        const { libraries, mopidyAction } = this.props;
         let comps = [];
-        artists.forEach((artist, artistName) => {
+        libraries.forEach((library, libraryName) => {
             comps.push(
-                <li className="artist" key={artistName} onClick={this.expandArtist.bind(this, artistName, artist.get("uris"))}>
-                    {artistName}
+                <li className="library" key={libraryName} onClick={this.expandLibrary.bind(this, libraryName, library.get("uri"))}>
+                    {libraryName}
                 </li>);
-                if (artist.has("albums")) {
-                    let i = 0;
-                     artist.get("albums").forEach((album, albumName) => {
-                        comps.push(
-                            <li className="album"
-                                key={"album_" + artistName + "_" + ++i}
-                                onClick={this.expandAlbum.bind(this, artistName, albumName, album.get("uris"))}>
-                                {albumName}
-                            </li>);
-                            console.log(album);
-                            let j = 0;
-                            let tracks = album.get("tracks");
-                            if(tracks.count() > 0) console.log(tracks.count());
-                            tracks.forEach((track, trackName) => {
-                                console.log(track);
+                library.get("artists").forEach((artist, artistName) => {
+                    comps.push(
+                        <li className="artist" key={artistName} onClick={this.expandArtist.bind(this, libraryName, artistName, artist.get("uri"))}>
+                            {artistName}
+                        </li>);
+                        if (artist.has("albums")) {
+                            let i = 0;
+                             artist.get("albums").forEach((album, albumName) => {
                                 comps.push(
-                                    <li className="track"
-                                        key={"track_" + trackName + "_" + ++j}>
-                                        {trackName}
-                                    </li>
-
-                                );
+                                    <li className="album"
+                                        key={"album_" + artistName + "_" + ++i}
+                                        onClick={this.expandAlbum.bind(this, libraryName, artistName, albumName, album.get("uri"))}>
+                                        {albumName}
+                                    </li>);
+                                    let j = 0;
+                                    let tracks = album.get("tracks");
+                                    tracks.forEach((track, trackName) => {
+                                        comps.push(
+                                            <li className="track"
+                                                key={"track_" + trackName + "_" + ++j}>
+                                                {track.get("name")}
+                                            </li>
+                                        );
+                                    });
                             });
+                        }
+                });
 
-
-                    });
-                }
-        });
+        })
 
         return (
             <div className="library">
