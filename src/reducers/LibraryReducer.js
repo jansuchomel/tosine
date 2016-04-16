@@ -17,12 +17,14 @@ export default function(state = defaultState, action) {
                 }
             });
         case "LIBRARY_EXPANDED":
-            return state.withMutations(mutatedState => {
+            let library = state.getIn([action.library, "artists"]);
+            return state.setIn([action.library, "artists"], library.withMutations(mutatedLibrary => {
                 for (let artist of action.artists) {
-                    if (artist.name.trim() == "") continue;
-                    mutatedState.setIn([action.library, "artists", artist.name], Map({uri: artist.uri, albums: Map({}), name: artist.name}));
+                    if (artist.name.trim() == "") continue; // empty google music artist workaround
+                    mutatedLibrary.set(artist.name, Map({uri: artist.uri, albums: Map({}), name: artist.name}));
                 }
-            });
+            }).sortBy(artist => artist.get("name"))
+        );
         case "ARTIST_EXPANDED":
             return state.withMutations(mutatedState => {
                 for (let album of action.albums) {

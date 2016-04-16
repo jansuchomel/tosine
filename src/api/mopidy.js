@@ -137,6 +137,7 @@ export class MopidyPlayer {
                     switch (library.uri) {
                         case 'gmusic:directory':
                             library.uri = 'gmusic:artist';
+                            // TODO: gmusic:artist sometimes returns tracks instead of albums
                         case 'local:directory':
                             libraries.push(library);
                             break;
